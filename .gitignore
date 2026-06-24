@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+
+data/
+
+logs/
+mlruns/
+mlflow.db
+
+.env
