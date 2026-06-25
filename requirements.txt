@@ -1,0 +1,40 @@
+# 1. DATA INGESTION & CORE UTILS
+arxiv==2.1.0
+datasets==2.18.0
+pandas==2.2.1
+requests==2.31.0
+
+# 2. MULTIMODAL ETL (TEXT, TABLE, IMAGE EXTRACTION)
+pymupdf==1.23.26
+pdfplumber==0.11.0
+langchain-text-splitters==0.0.1
+opencv-python-headless==4.9.0.80
+tabulate==0.9.0
+Pillow==10.2.0
+
+# 3. VECTOR DATABASE & EMBEDDING MODELS
+qdrant-client==1.8.0
+sentence-transformers==2.5.1
+transformers==4.38.2
+torch==2.2.1
+
+# 4. AGENTIC BRAIN & LLM SDK
+google-generativeai>=0.5.2
+
+# 5. MLOPS TRACKING & EXPERIMENTATION
+mlflow==2.11.1
+
+# 6. API GATEWAY (DECOUPLED BACKEND)
+fastapi==0.110.0
+uvicorn==0.29.0
+pydantic==2.6.4
+
+# 7. FRONTEND UI (STATELESS CLIENT)
+streamlit==1.32.0
+
+# 8. ACADEMIC EVALUATION FRAMEWORK (RAGAS)
+ragas==0.1.4
+langchain-google-genai==1.0.2
+
+# 9. TESTING & CI/CD
+pytest==8.1.1
