@@ -102,84 +102,60 @@ class AcademicImageExtractor :
 
     
     #  Core PDF Extraction Pipeline
-    def process_pdf (self, pdf_path : str) :
-        paper_id = os.path.basename (pdf_path).replace (".pdf","")
-        paper_img_dir = os.path.join (IMAGE_OUT_DIR, paper_id)
+    def process_pdf(self, pdf_path: str):
+        paper_id = os.path.basename(pdf_path).replace(".pdf", "")
+        paper_img_dir = os.path.join(IMAGE_OUT_DIR, paper_id)
         os.makedirs(paper_img_dir, exist_ok=True)
 
-        try :
+        try:
             doc = fitz.open(pdf_path)
             metadata_list = []
             extracted_count = 0
             
             # Loop Pages & Extract Image Streams
-            for page_num in range(len(doc)) :
+            for page_num in range(len(doc)):
                 page = doc[page_num]
-
                 image_list = page.get_images(full=True) 
                 
-                if not image_list:
-                    page_text = page.get_text("text").lower()
-                    if any(kw in page_text for kw in ["figure", "fig.", "gambar", "architecture", "framework", "pipeline"]):
-                        
-                        pix = page.get_pixmap(dpi=150)
-                        filename = f"page_{page_num+1}_vector_page.png"
-                        filepath = os.path.join(paper_img_dir, filename)
-                        pix.save(filepath)
-                        
-                        page_rect = fitz.Rect(0, 0, page.rect.width, page.rect.height)
-                        caption = self._extract_caption_heuristic(page, page_rect)
-                        
-                        metadata_list.append({
-                            "paper_id" : paper_id, 
-                            "page_number" : page_num + 1,
-                            "image_path" : filepath,
-                            "caption" : caption if caption else "Vector Page Illustration"
-                        })
-                        extracted_count += 1
-                        continue 
-        
-                for img_idx, img_info in enumerate(image_list) :
+                for img_idx, img_info in enumerate(image_list):
                     xref = img_info[0]
                     base_image = doc.extract_image(xref)
                     image_bytes = base_image["image"]
                     ext = base_image["ext"] 
 
-                    if len (image_bytes) < self.min_image_size_bytes : 
+                    if len(image_bytes) < 2048: 
                         continue
 
-                    # Capture Spatial Bounding Box Coordinates
-                    rects = page.get_image_rects (xref)
-                    if not rects : continue
-                    img_bbox = rects [0]
+                    rects = page.get_image_rects(xref)
+                    if not rects: 
+                        continue
+                    img_bbox = rects[0]
 
                     caption = self._extract_caption_heuristic(page, img_bbox)
 
-                    # Save Binary Image Stream to Local Storage
                     filename = f"page_{page_num+1}_img_{img_idx+1}.{ext}"
                     filepath = os.path.join(paper_img_dir, filename)
                     with open(filepath, "wb") as f:
                         f.write(image_bytes)
 
-                    metadata_list.append ({
-                        "paper_id" : paper_id, 
-                        "page_number" : page_num + 1,
-                        "image_path" : filepath,
-                        "caption" : caption
+                    metadata_list.append({
+                        "paper_id": paper_id, 
+                        "page_number": page_num + 1,
+                        "image_path": filepath,
+                        "caption": caption
                     })
                     extracted_count += 1
 
-            # Generate Structured JSON Index & Logging
             if metadata_list:
                 with open(os.path.join(paper_img_dir, "_image_metadata.json"), "w") as f:
                     json.dump(metadata_list, f, indent=2)
                 
-                logger.info(f"[{paper_id}] Berhasil mengekstrak {extracted_count} gambar dan diagram.")
+                logger.info(f"[{paper_id}] Berhasil mengekstrak {extracted_count} gambar asli.")
             
         except Exception as e:
             logger.error(f"Gagal proses gambar pada {pdf_path}: {e}")
 
 if __name__ == "__main__":
-    extractor = AcademicImageExtractor()
+    extractor = AcademicImageExtractor(min_image_size_bytes=2048)
     for pdf in glob.glob(os.path.join(RAW_PDF_DIR, "*.pdf")):
         extractor.process_pdf(pdf)
