@@ -9,7 +9,7 @@ import glob
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
 logging.basicConfig(
-    filename= os.path.join(BASE_DIR,"logs/extraction.log"), # Diubah menjadi ekstensi .log standar
+    filename= os.path.join(BASE_DIR,"logs/images_extraction.log"), 
     level= logging.INFO,
     format= "%(asctime)s | [IMAGE_EXTRACTOR] | %(message)s"
 )
