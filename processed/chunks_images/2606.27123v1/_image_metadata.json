@@ -1,0 +1,50 @@
+[
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 1,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_1_img_1.png",
+    "caption": "Fig. 1. Our approach is proposal-informed diffusion for closed-loop traffic simulation, initializing sampling from instance-centric marginal priors. the need for retraining [6], [7]. Nevertheless, reverse sam- pling typically involves many sequential steps which limits throughput in closed-loop environments where replanning must occur frequently and can make runtime efficiency a bot-"
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 2,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_1_img_1.png",
+    "caption": "Fig. 1. Our approach is proposal-informed diffusion for closed-loop traffic simulation, initializing sampling from instance-centric marginal priors. the need for retraining [6], [7]. Nevertheless, reverse sam- pling typically involves many sequential steps which limits throughput in closed-loop environments where replanning must occur frequently and can make runtime efficiency a bot-"
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 3,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_3_img_1.jpeg",
+    "caption": "Fig. 2. Our architecture illustration. An instance-centric symmetric scene encoder maps agent history and map context into a scene context c and marginal futures that are converted to an action-prior latent via PCA to condition a joint Transformer denoiser for multi-agent trajectory generation. We optionally apply inference-time guidance to refine sampled plans for behavior control and safety-critical scenarios."
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 4,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_3_img_1.jpeg",
+    "caption": "Fig. 2. Our architecture illustration. An instance-centric symmetric scene encoder maps agent history and map context into a scene context c and marginal futures that are converted to an action-prior latent via PCA to condition a joint Transformer denoiser for multi-agent trajectory generation. We optionally apply inference-time guidance to refine sampled plans for behavior control and safety-critical scenarios."
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 5,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_3_img_1.jpeg",
+    "caption": "Fig. 2. Our architecture illustration. An instance-centric symmetric scene encoder maps agent history and map context into a scene context c and marginal futures that are converted to an action-prior latent via PCA to condition a joint Transformer denoiser for multi-agent trajectory generation. We optionally apply inference-time guidance to refine sampled plans for behavior control and safety-critical scenarios."
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 6,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_3_img_1.jpeg",
+    "caption": "Fig. 2. Our architecture illustration. An instance-centric symmetric scene encoder maps agent history and map context into a scene context c and marginal futures that are converted to an action-prior latent via PCA to condition a joint Transformer denoiser for multi-agent trajectory generation. We optionally apply inference-time guidance to refine sampled plans for behavior control and safety-critical scenarios."
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 7,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_7_img_9.png",
+    "caption": "Visual Object (No Caption Found)"
+  },
+  {
+    "paper_id": "2606.27123v1",
+    "page_number": 8,
+    "image_path": "C:\\RamaFiles\\Coding\\multimodal-rag-project\\processed/chunks_images\\2606.27123v1\\page_7_img_9.png",
+    "caption": "Visual Object (No Caption Found)"
+  }
+]
