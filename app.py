@@ -95,25 +95,32 @@ if user_input:
         
         for chunk_data in st.session_state.agent_instance.ask(user_input, temp_image_path):
             if chunk_data["status"] == "processing":
+                # Menambahkan potongan kata baru ke penampung teks utama
                 full_response_text += chunk_data["text_chunk"]
+                
+                # Pembersih kode hantu markdown agar tabel rendered rapi
                 clean_display_text = full_response_text.replace("```markdown", "").replace("```", "")
-                message_placeholder.markdown(clean_display_text + "⏳")
+                
+                # Jalankan animasi mengetik live di browser ChatGPT-Style
+                message_placeholder.markdown(clean_display_text + "▌")
+                
+                # Menangkap jejak log dan status permintaan visual
                 final_trace = chunk_data["trace"]
                 is_visual_requested = chunk_data["needs_visual"]
                 
-                if "active_image_paths" in chunk_data and chunk_data["active_image_paths"]:
-                    # Mengambil gambar pertama yang dibaca oleh AI
-                    potential_path = chunk_data["active_image_paths"][0]
-                    if os.path.exists(potential_path):
-                        detected_file_path = potential_path
-
+                # Menangkap jalur gambar jika terdeteksi dari reverse image search
                 if chunk_data["reverse_search_data"] and chunk_data["reverse_search_data"]["success"]:
                     detected_file_path = chunk_data["reverse_search_data"]["file_path"]
                     detected_caption = chunk_data["reverse_search_data"]["caption"]
+                    
+            elif chunk_data["status"] == "error":
+                full_response_text = chunk_data["text_chunk"]
+                message_placeholder.error(full_response_text)
 
-        # Setelah streaming selesai, matikan loading
+        # Setelah proses streaming 100% selesai, hilangkan kursor pengetik '▌'
         message_placeholder.markdown(full_response_text.replace("```markdown", "").replace("```", ""))
         latency = time.time() - start_time
+
 
         if detected_file_path and os.path.exists(detected_file_path):
             st.markdown("---")
