@@ -10,12 +10,16 @@ from PIL import Image
 
 # Logger Configuration
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
 logging.basicConfig(
-    filename=os.path.join(BASE_DIR, "logs/agent_system.log"),
+    filename=os.path.join(LOG_DIR, "agent_system.log"),
     level=logging.INFO,
     format="%(asctime)s | [QDRANT_RETRIEVER_DUAL] | %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 # Core Dual Retriever Class (Singleton Pattern)
 class MultimodalQdrantRetriever:
@@ -33,7 +37,8 @@ class MultimodalQdrantRetriever:
             
             cls._instance = super(MultimodalQdrantRetriever, cls).__new__(cls)
             
-            cls._instance.client = QdrantClient(url="http://localhost:6333")
+            qdrant_host = os.environ.get("QDRANT_HOST", "localhost")
+            cls._instance.client = QdrantClient(url=f"http://{qdrant_host}:6333")
             
             cls._instance.text_collection = "scientific_texts"
             

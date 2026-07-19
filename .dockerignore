@@ -1,0 +1,23 @@
+# ▲ BLOKIR ARSIP PDF JURNAL YANG SANGAT BERAT
+data/raw_pdf/
+data/processed/
+data/metadata/
+
+# ▲ BLOKIR VIRTUAL ENVIRONMENT LOKAL LAPTOP
+venv/
+.venv/
+env/
+
+# ▲ BLOKIR FILE REKAMAN INTEGRASI EXPERIMENT
+mlruns/
+logs/
+
+# Blokir file temporary dan cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+.git/
+.gitignore

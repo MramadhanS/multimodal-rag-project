@@ -10,7 +10,7 @@ from utils.mlops_logger import log_agent_interaction
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-st.set_page_config(page_title="InsightMind // RAG", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="arXiv CS Research Assistant", page_icon="⚡", layout="centered")
 
 st.markdown("""
     <style>
@@ -28,11 +28,24 @@ st.markdown("""
 st.title("⚡ arXiv CS Research Assistant")
 st.caption("Chat dan Eksplor Paper Terbaru AI, NLP, dan Computer Vision")
 
-# State Management Memori Chat
+@st.cache_resource
+def initialize_agent_brain():
+    try:
+        return ResearcherAgentOllama()
+    except Exception as e:
+        st.error(f"Gagal memuat Agen AI. Detail: {e}")
+        return None
+    
+agent_brain = initialize_agent_brain()
+if agent_brain is None:
+    st.stop()
+
 if "agent_instance" not in st.session_state:
-    st.session_state.agent_instance = ResearcherAgentOllama()
+    st.session_state.agent_instance = agent_brain
+
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
 
 # SIDEBAR MINIMALIS
 with st.sidebar:

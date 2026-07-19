@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # --- KONTANER 1: DATABASE VEKTOR INDUK (QDRANT) ---
+  qdrant_db:
+    image: qdrant/qdrant:latest
+    container_name: production_qdrant_node
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      # Mengamankan data agar tidak hilang saat kontainer mati (Persistent Data)
+      - ./qdrant_storage:/qdrant/storage
+    restart: always
+
+  # --- KONTANER 2: WEB FRONT-END INTERACTIVE INTERFACE (STREAMLIT) ---
+  rag_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production_insightmind_chat
+    ports:
+      - "8501:8501"
+    environment:
+      - QDRANT_HOST=qdrant_db
+      - OLLAMA_HOST=http://docker.internal
+    restart: always
+    depends_on:
+      - qdrant_db 

@@ -23,6 +23,11 @@ class ResearcherAgentOllama:
         self.model_name = "qwen2.5vl:7b"
         self.db = MultimodalQdrantRetriever()
         
+        ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+        os.environ["OLLAMA_HOST"] = ollama_host
+        
+        import ollama
+        
         self.system_prompt = """
 Anda adalah AI Peneliti Literatur Ilmiah tingkat doktoral yang memiliki kemampuan analisis visual dokumen (Vision) yang luar biasa tajam. 
 Tugas Anda adalah membedah dan merangkum isi data teks, tabel metrik, maupun diagram gambar yang disediakan di bawah ini secara objektif dan profesional.
