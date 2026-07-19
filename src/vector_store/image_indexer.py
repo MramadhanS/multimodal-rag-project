@@ -5,6 +5,7 @@ import glob
 import uuid
 import logging
 from PIL import Image
+from pathlib import Path
 from transformers import CLIPProcessor, CLIPModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
@@ -12,7 +13,6 @@ from qdrant_client.models import Distance, VectorParams, PointStruct
 # Logger & Directory Configuration
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
-# ▲ FIX 1: Mengaktifkan basicConfig agar file log visual_db.log tercipta riil di folder logs
 logging.basicConfig(
     filename=os.path.join(BASE_DIR, "logs/visual_db.log"),
     level=logging.INFO,
@@ -103,12 +103,14 @@ class ImageVectorIndexer:
             
                 if not vector: 
                     continue
+
+                clean_universal_path = Path(image_path).as_posix()
                 
                 payload = {
                     "doc_type": "image",
                     "paper_id": img_meta["paper_id"],
                     "caption": img_meta["caption"],
-                    "file_path": image_path
+                    "file_path": clean_universal_path
                 }
                 
                 points.append(

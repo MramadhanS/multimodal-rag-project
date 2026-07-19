@@ -9,7 +9,7 @@ import pymupdf4llm
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
 logging.basicConfig(
-    filename=os.path.join(BASE_DIR,"logs/text_extraction.log")
+    filename=os.path.join(BASE_DIR,"logs/text_extraction.log"),
     level=logging.INFO,
     format="%(asctime)s | [TEXT_PROCESSOR_ULTIMATUM] | %(message)s"
 )

@@ -6,13 +6,13 @@ import random
 import logging
 from typing import List, Dict, Any
 import arxiv
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from urllib.error import HTTPError, URLError
 
 # Path Management
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 LOG_DIR = os.path.join(BASE_DIR, "logs")
-os.makedirs(LOG_DIR,exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Logging Configuration
 logging.basicConfig (
@@ -29,18 +29,35 @@ logger = logging.getLogger(__name__)
 RAW_PDF_DIR = os.path.join (BASE_DIR, "data", "raw_pdf")
 METADATA_DIR = os.path.join (BASE_DIR, "data", "metadata")
 
-#Keyword
+# KEYWORD & CLUSTER TAXONOMY 
 SEARCH_TAXONOMY = {
-    "RAG": ["retrieval augmented generation", "multimodal RAG"],
-    "LLM": ["large language model architecture", "Transformer attention"],
-    "NLP_Local": ["Indonesian NLP", "cross lingual language model"]
+    "NLP_and_LLM": [
+        "Large Language Models", "LLM Evaluation", "Retrieval-Augmented Generation", 
+        "RAG Architecture", "Multimodal RAG", "Fine-Tuning", "PEFT", "LoRA", "QLoRA", 
+        "Prompt Engineering", "Transformers", "Self-Attention Mechanism", "BERT", 
+        "IndoBERT", "RoBERTa", "XLM-RoBERTa", "Text Embedding", "Vector Embeddings", 
+        "Sentiment Analysis", "Named Entity Recognition", "NER", "Aspect-Based Sentiment Analysis", 
+        "Text Summarization", "Sequence-to-Sequence"
+    ],
+    "Computer_Vision_and_Multimodal_AI": [
+        "Object Detection", "YOLOv8", "YOLOv10", "YOLOv11", "Real-Time Object Detection", 
+        "RT-DETR", "CornerNet", "CenterNet", "Vision Transformers", "ViT", "Swin Transformer", 
+        "Contrastive Learning", "CLIP", "ImageBind", "Multimodal Embeddings", "Image Segmentation", 
+        "Semantic Segmentation", "SAM", "Segment Anything Model", "Generative Adversarial Networks", 
+        "GAN", "Diffusion Models", "Latent Diffusion", "Stable Diffusion"
+    ],
+    "MLOps_and_Data_Engineering": [
+        "MLOps Pipeline", "Model Quantization", "LLM Optimization", "Vector Database", 
+        "ANN Search", "Hybrid Search", "Knowledge Graphs", "Semantic Search", "Chunking Strategy"
+    ]
 }
 
 # Arvix Data Miner
 class ArxivDataMiner :
-    def __init__(self, max_results : int = 50) :
-        self.max_results = max_results
-        self.client = arxiv.Client(page_size=50,delay_seconds=3.0,num_retries=3)
+    def __init__(self, target_results: int = 300) :
+        self.target_results = target_results
+        # Konfigurasi client dengan delay 3 detik mematuhi aturan resmi arXiv
+        self.client = arxiv.Client(page_size=100, delay_seconds=3.0, num_retries=5)
 
     def fetch_metadata (self) -> List[Dict[str,Any]] :
         master_metadata = [] 
@@ -48,20 +65,41 @@ class ArxivDataMiner :
         metadata_filepath = os.path.join(METADATA_DIR, "master_arxiv_metadata.jsonl")
 
         seen_ids = set()
+        downloaded_count = 0
 
-        # Loop For Searching
+        # Loop Pencarian Berdasarkan Klaster Baru
         for category, queries in SEARCH_TAXONOMY.items() :
             for query in queries :
-                logger.info (f'Category = {category} | Query = {query}')
-                search = arxiv.Search(query=query, max_results=self.max_results, sort_by=arxiv.SortCriterion.SubmittedDate)
+                if downloaded_count >= self.target_results:
+                    break
+
+                logger.info(f'Mencari Kategori: {category} | Kata Kunci: "{query}"')
+                
+                strict_query = f'(ti:"{query}" OR abs:"{query}") AND (cat:cs.LG OR cat:cs.CL OR cat:cs.CV)'
+                
+                search = arxiv.Search(
+                    query=strict_query, 
+                    max_results=30, 
+                    sort_by=arxiv.SortCriterion.SubmittedDate
+                )
 
                 try :
-                    for result in self.client.results (search) :
+                    results_generator = self.client.results(search)
+                    for result in results_generator:
+                        if downloaded_count >= self.target_results:
+                            break
+
                         current_id = result.get_short_id()
                         
+                        # Filter 1: Hindari Duplikasi Paper ID
                         if current_id in seen_ids:
                             continue
                             
+                        # Filter 2: Batasi 5 tahun terakhir (2021 hingga 2026)
+                        pub_year = result.published.year
+                        if pub_year < 2021:
+                            continue 
+
                         seen_ids.add(current_id)
 
                         paper_data = {
@@ -75,11 +113,14 @@ class ArxivDataMiner :
                         }
 
                         master_metadata.append(paper_data)
-
-                    time.sleep(3)
+                        downloaded_count += 1
+                        logger.info(f" -> [{downloaded_count}/{self.target_results}] Terdata! | Tahun: {pub_year} | ID: {current_id}")
 
                 except Exception as e :
-                    logger.error(f"API Error pada {query} : {e}")
+                    logger.error(f"Gagal memproses kata kunci '{query}': {e}")
+            
+            if downloaded_count >= self.target_results:
+                break
 
         logger.info(f"Pencarian selesai. Menulis {len(master_metadata)} data unik ke file JSONL...")
         with open (metadata_filepath, "w", encoding="utf-8") as f : 
@@ -106,17 +147,15 @@ class ArxivDataMiner :
                 result.download_pdf(dirpath=RAW_PDF_DIR, filename=f'{safe_id}.pdf')
 
                 if os.path.exists(filepath) and os.path.getsize(filepath) > 102400:
-                    time.sleep(random.uniform(5.0, 9.0)) 
+                    time.sleep(random.uniform(4.0, 7.0)) 
                     return True
                 else:
-                    logger.warning(f"File {safe_id}.pdf terputus/gagal disimpan. Mencoba kembali...")
                     attempt += 1
-                    time.sleep(6)
+                    time.sleep(5)
 
             except Exception as e:
                     attempt += 1
                     sleep_time = (3 ** attempt) + random.uniform(2, 5)
-                    logger.warning(f"Gangguan jaringan/Rate Limit. Mundur selama {sleep_time:.2f} detik... Error: {e}")
                     time.sleep(sleep_time)
 
         return False          
@@ -127,7 +166,7 @@ class ArxivDataMiner :
         success_count = 0
 
         with ThreadPoolExecutor (max_workers=num_workers) as executor :
-            futures = {executor.submit(self._download_pdf_worker,p) : p for p in metadata_list}
+            futures = {executor.submit(self._download_pdf_worker, p) : p for p in metadata_list}
             for future in as_completed(futures) :
                 if future.result() :
                     success_count += 1
@@ -135,39 +174,23 @@ class ArxivDataMiner :
         logger.info(f"Berhasil mengunduh {success_count}/{len(metadata_list)} PDF.")            
 
 
+# =====================================================================
+# UTAMA / EXECUTION GATE
+# =====================================================================
 if __name__ == "__main__" :
-    miner = ArxivDataMiner(max_results=20)
     metadata_filepath = os.path.join(METADATA_DIR, "master_arxiv_metadata.jsonl")
-    metadata_list = []
+    
+    if os.path.exists(metadata_filepath):
+        try:
+            os.remove(metadata_filepath)
+            logger.info("Berhasil membersihkan sisa database metadata lama.")
+        except Exception:
+            pass
 
-    if os.path.exists(metadata_filepath) and os.path.getsize(metadata_filepath) > 0 :
-        logger.info("File JSON Lokal Ditemukan, mulai memindai duplikat...")
-
-        seen_ids = set()
-        
-        with open(metadata_filepath, 'r', encoding='utf-8') as f :
-            for line in f :
-                if line.strip() :
-                    paper = json.loads(line.strip())
-                    paper_id = paper.get("paper_id")
-                    
-                    if paper_id not in seen_ids:
-                        seen_ids.add(paper_id)
-                        metadata_list.append(paper)
-        
-        logger.info(f"Berhasil menyaring duplikat! Menemukan {len(metadata_list)} dokumen unik.")
-
-        logger.info("Menulis ulang file master_arxiv_metadata.jsonl agar sinkron...")
-        with open(metadata_filepath, "w", encoding="utf-8") as f_clean:
-            for clean_paper in metadata_list:
-                f_clean.write(json.dumps(clean_paper) + "\n")
-                
-        logger.info("File JSONL di harddisk berhasil diperbarui menjadi bersih!")
-
-    else:
-        logger.info("File JSONL lokal tidak ditemukan/kosong. Menghubungi server arXiv...")
-        metadata_list = miner.fetch_metadata()
+    miner = ArxivDataMiner(target_results=300)
+    logger.info("Memulai pengambilan data 300 jurnal dari server arXiv...")
+    metadata_list = miner.fetch_metadata()
 
     if metadata_list:
-        logger.info(f"Mengirim {len(metadata_list)} target unik ke fungsi download...")
+        logger.info(f"Mengirim {len(metadata_list)} target unik ke fungsi unduh paralel...")
         miner.download_pdfs_in_parallel(metadata_list, num_workers=1)

@@ -29,8 +29,8 @@ class TextTableIndexer :
         self.collection_name = "scientific_texts"
         logger.info("memuat model MPNet ke RAM")
         
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.vector_size = self.model.get_sentence_embedding_dimension()
+        self.model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
+        self.vector_size = self.model.get_sentence_embedding_dimension() 
         self._ensure_collection_exists()
 
     # FUNCTION: Collection Validator Gateway

@@ -6,6 +6,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from sentence_transformers import SentenceTransformer
 from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
 
 # Logger Configuration
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -32,10 +33,11 @@ class MultimodalQdrantRetriever:
             
             cls._instance = super(MultimodalQdrantRetriever, cls).__new__(cls)
             
-            cls._instance.client = QdrantClient(host="localhost", port=6333)
+            cls._instance.client = QdrantClient(url="http://localhost:6333")
             
             cls._instance.text_collection = "scientific_texts"
-            cls._instance.text_model = SentenceTransformer('all-MiniLM-L6-v2')
+            
+            cls._instance.text_model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
             
             cls._instance.image_collection = "scientific_images"
             cls._instance.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -43,8 +45,6 @@ class MultimodalQdrantRetriever:
             
         return cls._instance
 
-
-    # FUNCTION A: Berburu Teks dan Tabel Inline
     def search_text_and_tables(self, query: str, limit: int = 3) -> str:
         logger.info(f"Pencarian TEKS-TABEL untuk query: '{query}'")
         try:
@@ -75,16 +75,13 @@ class MultimodalQdrantRetriever:
             logger.error(f"Error search_text: {e}")
             return f"ERROR: Kegagalan akses database teks ({str(e)})."
 
-    # FUNCTION B: Berburu Gambar Diagram / Grafik Menggunakan CLIP
     def search_images_via_clip(self, query: str, limit: int = 2) -> str:
         logger.info(f"Pencarian GAMBAR (CLIP) untuk query: '{query}'")
         try:
-            # Merubah teks pertanyaan menjadi koordinat ruang gambar 512 dimensi
             inputs = self.clip_processor(text=[query], return_tensors="pt", padding=True)
             text_features = self.clip_model.get_text_features(**inputs)
             query_vector = text_features.flatten().tolist()
             
-            # Tembak koleksi scientific_images di Qdrant
             search_results = self.client.search(
                 collection_name=self.image_collection,
                 query_vector=query_vector,
@@ -110,8 +107,52 @@ class MultimodalQdrantRetriever:
         except Exception as e:
             logger.error(f"Error search_images: {e}")
             return f"ERROR: Kegagalan akses database gambar ({str(e)})."
+        
+    def search_by_uploaded_image(self, uploaded_image_file, limit: int = 1) -> dict:
+        logger.info("Menjalankan Fitur REVERSE IMAGE SEARCH untuk gambar unggahan...")
+        try:
+            image = Image.open(uploaded_image_file).convert("RGB")
+            inputs = self.clip_processor(images=image, return_tensors="pt")
+            image_features = self.clip_model.get_image_features(**inputs)
+            query_vector = image_features.flatten().tolist()
+            
+            search_results = self.client.search(
+                collection_name=self.image_collection,
+                query_vector=query_vector,
+                limit=limit
+            )
+            
+            if not search_results:
+                return {
+                    "success": False,
+                    "message": "Gambar ini tidak terdeteksi berasal dari paper mana pun di database."
+                }
+                
+            hit = search_results[0]
+            
+            paper_id = hit.payload.get("paper_id", "Unknown")
+            caption = hit.payload.get("caption", "No Caption")
+            file_path = hit.payload.get("file_path", "")
+            match_percentage = hit.score * 100
+            
+            return {
+                "success": True,
+                "paper_id": paper_id,
+                "caption": caption,
+                "file_path": file_path,
+                "score": match_percentage,
+                "message": (
+                    f"--- HASIL REVERSE IMAGE SEARCH (AKURASI: {match_percentage:.1f}%) ---\n"
+                    f"ASAL PAPER   : [PAPER ID: {paper_id}]\n"
+                    f"KETERANGAN   : {caption}\n"
+                    f"PATH FISIK   : {file_path}"
+                )
+            }
+        except Exception as e:
+            logger.error(f"Error reverse image search: {e}")
+            return {"success": False, "message": f"ERROR VISUAL: Gagal menganalisis gambar ({str(e)})"}
 
 if __name__ == "__main__":
     retriever = MultimodalQdrantRetriever()
-    test_query = "Show me the pipeline flowchart diagram of multimodal RAG architecture"
-    print(retriever.search_images_via_clip(query=test_query, limit=1))
+    test_query = "Apakah Implementasi AI di zaman sekarang masih relevan atau lebih fokus ke implementasi agentic ai saja?"
+    print(retriever.search_text_and_tables(query=test_query, limit=1))
