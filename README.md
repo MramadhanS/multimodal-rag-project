@@ -13,7 +13,7 @@ An enterprise-grade, privacy-preserving, and offline-capable **Multimodal Agenti
 ## 📺 Live Application Demonstration
 
 ![Application Demo](https://githubusercontent.com)
-*Note: Ganti jalur placeholder ini dengan aset gambar bergerak (.gif) berdurasi 60 detik hasil rekaman layar Streamlit Anda yang menunjukkan kelancaran ketikan streaming respons, perbandingan tabel kotak, dan penemu gambar diagram jurnal.*
+*Note: Ganti jalur placeholder ini dengan aset gambar bergerak (.gif) berdurasi 60 detik hasil rekaman layar Streamlit Anda yang menunjukkan kelancaran ketikan streaming respons, perbandingan tabel kotak, dan penemu gambar diagram jurnal*
 
 ---
 
